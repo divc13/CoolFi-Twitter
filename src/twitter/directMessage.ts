@@ -8,12 +8,13 @@ export async function handleDM()
 {
     const scrapper = await login();
     const current_time= new Date();
-
+    
     const dm_responses = await scrapper.getDirectMessageConversations(settings.twitterUsername);
-
+    
     for (var conversation of dm_responses.conversations)
-    {
-        const conversationId = conversation.conversationId;
+        {
+            const conversationId = conversation.conversationId;
+            console.log("Conversation ID:", conversationId);
 
         // get the account ID of the user
         var accountID = conversation.participants[0].id;
@@ -59,9 +60,14 @@ export async function handleDM()
         await upsertUser(accountID, { lastSeenTime: current_time });
         
         // send the user message to bitte ai, and get the response
-        const message_to_send = walletId ? await sendChatMessage(conversationId, complete_text, walletId) : await sendChatMessage(conversationId, complete_text);
-        
-        await scrapper.sendDirectMessage(conversationId, message_to_send);
+        if (complete_text.length > 0)
+        {
+            const message_to_send = walletId ? await sendChatMessage(conversationId, complete_text, walletId) : await sendChatMessage(conversationId, complete_text);
+
+            await scrapper.sendDirectMessage(conversationId, message_to_send);
+        }
+
+
 
     }
 }

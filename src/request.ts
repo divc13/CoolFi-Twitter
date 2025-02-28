@@ -19,7 +19,7 @@ async function readStream(stream: ReadableStream<Uint8Array>): Promise<string> {
   
   export async function sendChatMessage(conversationId: string, message: string, wallet_id?: string) {
 
-    message = `This is a message from twitter. Use the sepcific twitter api urls to answer them. The conversation id is ${conversationId}` + message;
+    message = `This is a message from twitter. The conversation id is ${conversationId}` + message;
 
     const response = await fetch(`${BITTE_API_URL}/chat`, {
       method: "POST",
