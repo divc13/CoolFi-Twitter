@@ -51,7 +51,7 @@ export async function sendChatMessage(accountId:string, conversationId: string, 
     },
     body: JSON.stringify({
       id: id,
-      messages: result.messages,
+      messages: result,
       config: {
         mode: "debug",
         agentId: "coolfi-ai.vercel.app",
