@@ -10,7 +10,7 @@ async function run() {
         } catch (error) {
             console.error("Error in handleDM:", error);
         }
-        await new Promise(resolve => setTimeout(resolve, 15000)); // Wait for 15 seconds
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait for 5 seconds
     }
 }
 

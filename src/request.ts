@@ -33,15 +33,50 @@ export async function sendChatMessage(accountId:string, conversationId: string, 
   var result = [];
   if (history_response.status == 200) {
     const res = await history_response.json();
-    result = res.messages;
+    console.log("History Response:", res.messages);
+    result = res.messages
+  .map((msg: any) => {
+    if (msg.role == "user") {
+      return {
+        id: msg.id || generateUniqueId(),
+        role: msg.role,
+        content: msg.content,
+      };
+    }
+    if (msg.role == "assistant" && msg.content[0].text) {
+      return {
+        id: generateUniqueId(),
+        role: msg.role,
+        content: msg.content[0]?.text,
+      };
+    }
+    return null;
+  })
+  .filter(Boolean);
+    // result = res.messages;
   }
+
+  // result.push({
+  //   id: generateUniqueId(),
+  //   role: "user",
+  //   content: message,
+  // });
+
+  // result.push({
+  //   id: generateUniqueId(),
+  //   role: "assistant",
+  //   content: "",
+  // });
 
   result.push({
     id: generateUniqueId(),
-    createdAt: new Date().toISOString(),
     role: "user",
     content: message,
   });
+
+  // result = [{"id":"lXhnWeSiqaptv00Y","role":"user","content":"hey"},{"id":"J8e7Kh0yi60oq1D7","role":"assistant","content":""},{"id":"rEQqOjV55LXwu3k2","role":"user","content":"hey again"}];
+  
+  console.log({result});
 
   const response = await fetch(`${BITTE_API_URL}/chat`, {
     method: "POST",
