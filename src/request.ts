@@ -16,6 +16,55 @@ async function readStream(stream: ReadableStream<Uint8Array>): Promise<string> {
 
   return result;
 }
+
+function formatResponse(apiResponses:any) {
+    const formatted:any = { messages: [] };
+  
+    for (let i = 0; i < apiResponses.length; i++) {
+      const response = apiResponses[i];
+
+      if (response.role == "user") {
+        formatted.messages.push( {
+          id: response.id || generateUniqueId(),
+          role: response.role,
+          content: response.content,
+        });
+      }
+
+      if (response.role === "assistant") {
+        const toolCall = response.content.find(c => c.type === "tool-call");
+        if (toolCall) {
+          const nextResponse = apiResponses[i + 1];
+          if (nextResponse && nextResponse.role === "tool") {
+            const toolResult = nextResponse.content.find(c => c.type === "tool-result" && c.toolCallId === toolCall.toolCallId);
+            formatted.messages.push({
+              id: response.id,
+              role: "assistant",
+              content: "",
+              toolInvocations: [
+                {
+                  state: "result",
+                  toolCallId: toolCall.toolCallId,
+                  toolName: toolCall.toolName,
+                  args: toolCall.args,
+                  result: toolResult ? toolResult.result : null,
+                },
+              ],
+            });
+          }
+        }
+        else {
+          formatted.messages.push({
+            id: response.id,
+            role: response.role,
+            content: response.content[0]?.text,
+          });
+        }
+      }
+    }
+  
+    return formatted.messages;
+  }
   
 export async function sendChatMessage(accountId:string, conversationId: string, message: string, wallet_id?: string) {
   
@@ -30,43 +79,12 @@ export async function sendChatMessage(accountId:string, conversationId: string, 
       Authorization: `Bearer ${BITTE_API_KEY}`,
     },
   });
+
   var result = [];
   if (history_response.status == 200) {
     const res = await history_response.json();
-    console.log("History Response:", res.messages);
-    result = res.messages
-  .map((msg: any) => {
-    if (msg.role == "user") {
-      return {
-        id: msg.id || generateUniqueId(),
-        role: msg.role,
-        content: msg.content,
-      };
-    }
-    if (msg.role == "assistant" && msg.content[0].text) {
-      return {
-        id: generateUniqueId(),
-        role: msg.role,
-        content: msg.content[0]?.text,
-      };
-    }
-    return null;
-  })
-  .filter(Boolean);
-    // result = res.messages;
+    result = formatResponse(res.messages);
   }
-
-  // result.push({
-  //   id: generateUniqueId(),
-  //   role: "user",
-  //   content: message,
-  // });
-
-  // result.push({
-  //   id: generateUniqueId(),
-  //   role: "assistant",
-  //   content: "",
-  // });
 
   result.push({
     id: generateUniqueId(),
@@ -74,8 +92,6 @@ export async function sendChatMessage(accountId:string, conversationId: string, 
     content: message,
   });
 
-  // result = [{"id":"lXhnWeSiqaptv00Y","role":"user","content":"hey"},{"id":"J8e7Kh0yi60oq1D7","role":"assistant","content":""},{"id":"rEQqOjV55LXwu3k2","role":"user","content":"hey again"}];
-  
   console.log({result});
 
   const response = await fetch(`${BITTE_API_URL}/chat`, {
