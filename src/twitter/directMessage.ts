@@ -62,7 +62,7 @@ export async function handleDM()
         // send the user message to bitte ai, and get the response
         if (complete_text.length > 0)
         {
-            const message_to_send = walletId ? await sendChatMessage(conversationId, complete_text, walletId) : await sendChatMessage(conversationId, complete_text);
+            const message_to_send = walletId ? await sendChatMessage(accountID, conversationId, complete_text, walletId) : await sendChatMessage(accountID, conversationId, complete_text);
 
             await scrapper.sendDirectMessage(conversationId, message_to_send);
         }
