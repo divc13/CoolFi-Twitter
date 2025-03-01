@@ -30,7 +30,18 @@ export async function sendChatMessage(accountId:string, conversationId: string, 
       Authorization: `Bearer ${BITTE_API_KEY}`,
     },
   });
-  const result = await history_response.json();
+  var result = [];
+  if (history_response.status == 200) {
+    const res = await history_response.json();
+    result = res.messages;
+  }
+
+  result.push({
+    id: generateUniqueId(),
+    createdAt: new Date().toISOString(),
+    role: "user",
+    content: message,
+  });
 
   const response = await fetch(`${BITTE_API_URL}/chat`, {
     method: "POST",
