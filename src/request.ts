@@ -17,9 +17,11 @@ async function readStream(stream: ReadableStream<Uint8Array>): Promise<string> {
     return result;
   }
   
-  export async function sendChatMessage(conversationId: string, message: string, wallet_id?: string) {
+  export async function sendChatMessage(accountId:string, conversationId: string, message: string, wallet_id?: string) {
 
-    message = `This is a message from twitter. The conversation id is ${conversationId}` + message;
+    message = message + `\nThis is a message from twitter. The conversation id is ${conversationId}\n`;
+    const id = Buffer.from(accountId).toString("base64");
+    console.log("ID:", id); 
 
     const response = await fetch(`${BITTE_API_URL}/chat`, {
       method: "POST",
@@ -28,7 +30,8 @@ async function readStream(stream: ReadableStream<Uint8Array>): Promise<string> {
         Authorization: `Bearer ${BITTE_API_KEY}`,
       },
       body: JSON.stringify({
-        id: conversationId,
+        id: id,
+        // id: "1g7m20i5v8zsozqK",
         messages: [
           {
             id: generateUniqueId(),
