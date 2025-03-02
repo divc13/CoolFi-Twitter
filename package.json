@@ -13,7 +13,6 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.4.1",
     "agent-twitter-client": "^0.0.17",
     "axios": "^1.8.1",
     "cors": "^2.8.5",

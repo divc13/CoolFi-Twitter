@@ -1,8 +1,8 @@
 import { login } from "./login";
 import { settings } from "../config";
-import { getUser, upsertUser } from "../db";
 import { sendChatMessage } from "../request";
 
+var previousTime:any = null;
 
 export async function handleDM()
 {
@@ -12,9 +12,9 @@ export async function handleDM()
     const dm_responses = await scrapper.getDirectMessageConversations(settings.twitterUsername);
     
     for (var conversation of dm_responses.conversations)
-        {
-            const conversationId = conversation.conversationId;
-            console.log("Conversation ID:", conversationId);
+    {
+        const conversationId = conversation.conversationId;
+        console.log("Conversation ID:", conversationId);
 
         // get the account ID of the user
         var accountID = conversation.participants[0].id;
@@ -23,23 +23,7 @@ export async function handleDM()
             accountID = conversation.participants[1].id;
         }
 
-        // time at which the agent last checked the users messages
-        var lastSeenTime = null;
-        var walletId = null;
-        var userInfo = await getUser(accountID);
         var complete_text = "";
-
-        if (userInfo != null && userInfo.lastSeenTime && userInfo.lastSeenTime != null)
-        {
-            lastSeenTime = userInfo.lastSeenTime;
-        } 
-
-        console.log("LastseenTime ", lastSeenTime)
-
-        if (userInfo != null && userInfo.walletId && userInfo.walletId != null)
-        {
-            walletId = userInfo.walletId;
-        } 
 
         // merge all the unseen messages into a single string
         for (var message of conversation.messages)
@@ -48,26 +32,19 @@ export async function handleDM()
                 continue;
 
             const message_time = new Date(Number(message.createdAt));
-            if (!lastSeenTime || message_time > lastSeenTime)
+            if (!previousTime || message_time > previousTime)
             {
                 complete_text += message.text + "\n";
             }
         }
 
         console.log("Complete Text:", complete_text);
-
-        // set the last seen time to the current time
-        await upsertUser(accountID, { lastSeenTime: current_time });
-        
-        // send the user message to bitte ai, and get the response
         if (complete_text.length > 0)
         {
-            const message_to_send = walletId ? await sendChatMessage(accountID, conversationId, complete_text, walletId) : await sendChatMessage(accountID, conversationId, complete_text);
-
+            const message_to_send = await sendChatMessage(accountID, conversationId, complete_text);
             await scrapper.sendDirectMessage(conversationId, message_to_send);
         }
-
-
-
     }
+
+    previousTime = current_time;
 }

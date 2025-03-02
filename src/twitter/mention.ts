@@ -12,8 +12,9 @@ export async function handleMentions()
     const current_time= new Date();
     
     const query = previous_time? `@${settings.twitterUsername}`: `@${settings.twitterUsername}`;
+    console.log(query);
 
-    const tweetStream = scrapper.searchTweets(query, MAX_TWEETS, SearchMode.Latest);
+    const tweetStream = scrapper.searchTweets(query, MAX_TWEETS, SearchMode.Users);
     for await (const tweet of tweetStream) 
     {
         const tweet_text = tweet.text;
