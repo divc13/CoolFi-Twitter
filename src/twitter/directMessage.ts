@@ -2,7 +2,7 @@ import { login } from "./login";
 import { settings } from "../config";
 import { sendChatMessage } from "../request";
 
-var previousTime:any = null;
+var previousTime:any = new Date();
 
 export async function handleDM()
 {
@@ -16,7 +16,6 @@ export async function handleDM()
         const conversationId = conversation.conversationId;
         console.log("Conversation ID:", conversationId);
 
-        // get the account ID of the user
         var accountID = conversation.participants[0].id;
         if (accountID == settings.twitterUsername)
         {
@@ -25,7 +24,6 @@ export async function handleDM()
 
         var complete_text = "";
 
-        // merge all the unseen messages into a single string
         for (var message of conversation.messages)
         {
             if (message.senderScreenName == settings.twitterUsername)
